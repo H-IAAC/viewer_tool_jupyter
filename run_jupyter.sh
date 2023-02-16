@@ -1,2 +1,5 @@
+DOCKERCMD=nvidia-docker
+PORT=9999
+IMAGE=hiaac4-full:latest
 WORKDIR=$(realpath $(pwd))
-nvidia-docker run -it -p 9999:9999 --ipc=host hiaac-full4:latest jupyter lab --no-browser --ip=0.0.0.0 --port 9999 --allow-root --NotebookApp.token= --notebook-dir='/home/nonroot/'
+$DOCKERCMD run  -it --rm  -e HOME=$WORKDIR -e SHELL="/bin/bash" -p $PORT:$PORT -w $WORKDIR -v$WORKDIR:$WORKDIR --ipc=host $IMAGE python -m jupyterlab --allow-root --port $PORT --no-browser --ip='0.0.0.0' --NotebookApp.token='' --NotebookApp.password=''
