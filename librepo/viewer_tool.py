@@ -11,7 +11,6 @@ from tqdm.auto import tqdm
 
 class ViewerTool:    
     _url = "http://vm.hiaac.ic.unicamp.br:8081/"
-    #_url = "http://localhost:8080/"
     _api = "api/"
     
     def setup(self, url, port):
@@ -47,8 +46,7 @@ class ViewerTool:
     
     def get_csv(self, experiment, activity, user, filename, download=False):
         csv_url = self._format_as_download_url(experiment, activity, user, filename)
-        
-        # download file
+
         if download:
             self.download_file(experiment, activity, user, filename, './Data/' + experiment + os.sep + user + os.sep + activity)
         
@@ -63,12 +61,20 @@ class ViewerTool:
             
         return df
 
-    def get_video(self, experiment, activity, user, filename, download=False):
+    def get_video(self, experiment, activity, user, download=False):
+        query = {'experiment':experiment, 'activity':activity, 'user':user}
+        data = self._request("get_video_filename", query).json()
+        
+        filename = data["video"]
+        
+        if filename == 'none':
+            return 'No video found.'
+        
         video_url = self._format_as_download_url(experiment, activity, user, filename)
 
-        # download file
         if download:
-            self.download_file(experiment, activity, user, filename, './Data/' + experiment + os.sep + user + os.sep + activity)
+            download_location = './Data/' + experiment + os.sep + user + os.sep + activity
+            video_url = self.download_file(experiment, activity, user, filename, download_location)
 
         return video_url
 
@@ -81,6 +87,13 @@ class ViewerTool:
         return video
 
     def download_file(self, experiment, activity, user, filename, directory_location):
+        
+        video_location = ''
+        file_destination = directory_location + os.sep + filename 
+        
+        if os.path.exists(file_destination):
+            return file_destination        
+        
         file_url = self._format_as_download_url(experiment, activity, user, filename)
         
         # make an HTTP request within a context manager
@@ -92,19 +105,20 @@ class ViewerTool:
                 # check header to get content length, in bytes
                 total_length = int(r.headers.get("Content-Length"))
 
-                file_location = directory_location + os.sep + filename  
-                print(f'Saving {filename} to {file_location}')
+                print(f'Saving {filename} to {file_destination}')
                 
                 # implement progress bar via tqdm
                 with tqdm.wrapattr(r.raw, "read", total=total_length, desc="")as raw:
                     # Create directory_location
                     os.makedirs(directory_location, exist_ok=True)
 
-                    with open(f"{file_location}", 'wb') as output:
+                    with open(f"{file_destination}", 'wb') as output:
                         shutil.copyfileobj(raw, output)
                         
         except requests.exceptions.HTTPError as errh:
             print('File not found!')
+            
+        return file_destination
     
     def _format_as_download_url(self, experiment, activity, user, filename):
          params = urllib.parse.quote(experiment + ' [' + activity + '] [' + user + ']/' + filename)
