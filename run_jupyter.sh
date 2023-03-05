@@ -1,5 +1,2 @@
-DOCKERCMD=nvidia-docker
-PORT=9999
-IMAGE=hiaac4-full:latest
-WORKDIR=$(realpath $(pwd))
-$DOCKERCMD run  -it --rm  -e HOME=$WORKDIR -e SHELL="/bin/bash" -p $PORT:$PORT -w $WORKDIR -v$WORKDIR:$WORKDIR --ipc=host $IMAGE python -m jupyterlab --allow-root --port $PORT --no-browser --ip='0.0.0.0' --NotebookApp.token='' --NotebookApp.password=''
+export PORT=8888
+docker run  -it --rm  -e SHELL="/bin/bash" -e HOME=`pwd` -p ${PORT}:${PORT} -v`pwd`:`pwd` -w`pwd` -u $(id -u ${USER}):$(id -g ${USER}) hiaac4-visualization python -m jupyterlab --port ${PORT} --no-browser --ip='0.0.0.0' --NotebookApp.token='' --NotebookApp.password=''
