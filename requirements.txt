@@ -2,3 +2,4 @@ pandas
 plotly
 jupyter_dash
 dash-player
+ipywidgets

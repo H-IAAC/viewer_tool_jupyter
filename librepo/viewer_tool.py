@@ -7,7 +7,13 @@ import pandas as pd
 
 from io import StringIO
 from IPython.display import display, HTML
-from tqdm.auto import tqdm
+from tqdm.notebook import tqdm
+
+import plotly.express as px
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
+import datetime
+
 
 
 class ViewerTool:
@@ -174,3 +180,52 @@ class ViewerTool:
             print(err)
 
         return response
+    
+    
+
+    
+    
+    def get_chart(self,dataset,fig,row,file_name):
+        #print(dataset['Value 1'])
+        #dataset["Date"] = [datetime.datetime.fromtimestamp(x/1000) for x in dataset['VideoTimelapse']]
+        
+        fig.add_trace(go.Scatter(x=dataset['sec'], y=dataset['Value 1'],mode='lines',name=file_name +' X',legendgroup = row),row=row, col=1)
+        fig.add_trace(go.Scatter(x=dataset['sec'], y=dataset['Value 2'],mode='lines',name=file_name +' Y',legendgroup = row),row=row, col=1)
+        fig.add_trace(go.Scatter(x=dataset['sec'], y=dataset['Value 3'],mode='lines',name=file_name +' Z',legendgroup = row),row=row, col=1)
+        return fig
+
+    def add_line_change_activites(f,change_activies):
+        for time_activity in change_activies:
+            f.add_vline(x=time_activity,line_width=1, line_dash="dash", line_color="green")
+        return f
+
+    def create_figs(self, experiment, activity, user,files,start=-1,end=-1):   
+        fig = make_subplots(rows=len(files), cols=1, shared_xaxes=True,subplot_titles=(files))        
+        try:
+            
+            row=0
+            titles={}
+            for file in files:
+                df = self.get_csv(experiment, activity,user, file)
+                df["sec"] =[x/1000 for x in df['VideoTimelapse']]
+                if(start!=-1):
+                    df = df[(df['sec'] >start)]
+                if(end!=-1):
+                    df = df[(df['sec'] <end)]                
+
+                row=row+1
+                self.get_chart(df,fig,row,file)
+
+            fig.update_layout(
+                        width=800,
+                        height=len(files)*300,
+                    title_text=experiment + ' '+user+' '+activity,
+                    #hovermode= 'closest',
+                    hovermode='x unified'
+                #'xaxis': {'showspikes': True}
+                    ) 
+        except:
+            print('erro')
+
+
+        return fig
