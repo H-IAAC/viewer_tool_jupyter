@@ -2,7 +2,7 @@ import os
 import json
 import shutil
 import requests
-import urllib.parse
+import urllib
 import pandas as pd
 
 from io import StringIO
@@ -19,9 +19,30 @@ import datetime
 class ViewerTool:
     _url = "http://vm.hiaac.ic.unicamp.br:8081/"
     _api = "api/"
+    _head = {'Cookie': ''}
 
     def setup(self, url, port):
         self._url = url + ':' + port + '/'
+
+    # Authentication
+    #
+    # @param string password  Password as string.
+    #
+    # @return string     True if success, otherwise False.
+    def auth(self, password):
+        url = self._url + 'in'
+
+        query = { 'password' : password }
+        data = requests.post(url, json = query)
+
+        if data.text == 'OK':
+            token = data.headers['set-cookie']
+            self._head = {'Cookie': token}
+            return True
+
+        print(data.text)
+        return False
+
 
     # List all experiments available.
     # 
@@ -61,24 +82,34 @@ class ViewerTool:
     # @param boolean download   Optional flag, used to download CSV.
     # 
     # @return DataFrame     Data with CSV content.
-    def get_csv(self, experiment, activity, user, filename, download=False):
+    def get_csv(self, experiment, activity, user, filename):
         csv_url = self._format_as_download_url(experiment, activity, user, filename)
 
-        if download:
-            download_location = './Data/' + experiment + os.sep + user + os.sep + activity
-            self._download_file(experiment, activity, user, filename, download_location)
+        if not csv_url:
+            return False
 
+        download_location = './Data/' + experiment + os.sep + user + os.sep + activity
+        csv_path = self._download_file(experiment, activity, user, filename, download_location)
+        if not csv_path:
+            return None
+        return self._load_csv(csv_path)
+
+    # Load CSV to DataFrame.
+    #
+    # @param csv csv_content  CSV as string.
+    #
+    # @return DataFrame     Data with CSV content.
+    def _load_csv(self, csv_content):
         try:
-            df = pd.read_csv(csv_url, sep=';', skipinitialspace=True)
+            df = pd.read_csv(filepath_or_buffer=csv_content, sep=';', skipinitialspace=True)
             df.Timestamp
         except AttributeError:
-            df = pd.read_csv(csv_url, sep=',', skipinitialspace=True)
+            df = pd.read_csv(filepath_or_buffer=csv_content, sep=',', skipinitialspace=True)
         except urllib.error.HTTPError as errh:
             print(f'Failed to download {filename}: {errh}')
             return None
 
         return df
-
 
     # Get a reference to the experiment video.
     # 
@@ -115,28 +146,34 @@ class ViewerTool:
     # 
     # @return string     HTML component to render the video.
     def display_video(self, experiment, activity, user):
-        video_url = self.get_video(experiment, activity, user)
+        video_path = self.get_video(experiment, activity, user, True)
 
         video = HTML(f""" <video width="100%" height="300px" controls>
-                         <source src={video_url} type="video/mp4">
+                         <source src={video_path} type="video/mp4">
                          </video>
                      """)
         return video
 
 
     def _download_file(self, experiment, activity, user, filename, directory_location):
-
-        video_location = ''
         file_destination = directory_location + os.sep + filename
-
-        if os.path.exists(file_destination):
-            return file_destination
-
         file_url = self._format_as_download_url(experiment, activity, user, filename)
+
+        if not file_url:
+            return False
+
+        # If file is already locally stored
+        if os.path.exists(file_destination):
+            # then check if it has the same size from remote file
+            file_size = self._get_content_size(file_url)
+            current_file_size = int(os.stat(file_destination).st_size)
+            if current_file_size == file_size:
+                # if same size, then return the path to local file
+                return file_destination
 
         # make an HTTP request within a context manager
         try:
-            with requests.get(file_url, stream=True) as r:
+            with requests.get(file_url, stream=True, headers=self._head) as r:
                 r.raise_for_status()
 
                 # check header to get content length, in bytes
@@ -145,7 +182,7 @@ class ViewerTool:
                 print(f'Saving {filename} to {file_destination}')
 
                 # implement progress bar via tqdm
-                with tqdm.wrapattr(r.raw, "read", total=total_length, desc="")as raw:
+                with tqdm.wrapattr(r.raw, "read", total=total_length, desc="") as raw:
                     # Create directory_location
                     os.makedirs(directory_location, exist_ok=True)
 
@@ -159,13 +196,42 @@ class ViewerTool:
 
 
     def _format_as_download_url(self, experiment, activity, user, filename):
-         params = urllib.parse.quote(experiment + ' [' + activity + '] [' + user + ']/' + filename)
-         return self._url + params
+        params = urllib.parse.quote('pre/' + experiment + ' [' + activity + '] [' + user + ']/' + filename)
+        status_code = self._check_url(params)
+        if status_code == 200:
+            return self._url + params
+
+        params = urllib.parse.quote('pos/' + experiment + ' [' + activity + '] [' + user + ']/' + filename)
+        status_code = self._check_url(params)
+        if status_code == 200:
+            return self._url + params
+
+        print("Invalid parameters/Unauthorized access")
+        return False
+
+    def _check_url(self, params):
+        response = requests.head(self._url + params, headers=self._head)
+        return response.status_code
+
+
+    def _get_content_size(self, url):
+        try:
+            with requests.get(url, stream=True, headers=self._head) as r:
+                r.raise_for_status()
+
+                # check header to get content length, in bytes
+                total_length = int(r.headers.get("Content-Length"))
+                return total_length
+
+        except requests.exceptions.HTTPError as errh:
+            print('File not found!')
+
+        return 0
 
 
     def _request(self, endpoint, query):
         try:
-            response = requests.get(self._url + self._api + endpoint, params=query, timeout=5)
+            response = requests.get(self._url + self._api + endpoint, params=query, timeout=5, headers=self._head)
             response.raise_for_status()
         except requests.exceptions.HTTPError as errh:
             print(errh)
