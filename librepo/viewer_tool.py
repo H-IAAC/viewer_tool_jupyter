@@ -163,7 +163,7 @@ class ViewerTool:
             return False
 
         # If file is already locally stored
-        if os.path.exists(file_destination):
+        if os.path.isfile(file_destination):
             # then check if it has the same size from remote file
             file_size = self._get_content_size(file_url)
             current_file_size = int(os.stat(file_destination).st_size)
