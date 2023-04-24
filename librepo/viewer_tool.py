@@ -61,8 +61,8 @@ class ViewerTool:
     # @param string user        User name.
     # 
     # @return DataFrame     Data from all files available in this experiment.
-    def list_experiment_files(self, experiment, activity, user):
-        query = {'experiment':experiment, 'activity':activity, 'user':user}
+    def list_experiment_files(self, experiment, activity, user, only_post_processor=False):
+        query = {'experiment':experiment, 'activity':activity, 'user':user, 'only_post_processor':only_post_processor}
         data = self._request("list_experiment_files", query).json()
 
         if not data:
