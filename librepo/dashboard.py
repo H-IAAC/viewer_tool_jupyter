@@ -1,59 +1,77 @@
-import dash
-import dash_html_components as html
 from dash.dependencies import Input, Output, State
-
+import dash
+from dash import html
+from librepo.video import VideoPlayer
 
 class DashboardApp:
     def __init__(self):
         self.app = dash.Dash(__name__)
+        self.server = self.app.server
         self.components = []  # Store the added components
         self.app.layout = html.Div(self.components)
-        self.video_urls = []  # Store video URLs and corresponding IDs
-        
-        
 
-    def run(self, host="127.0.0.1", port=8060):
-        self.app.run_server(host=host, port=port, dev_tools_ui=True,     debug=True,     dev_tools_hot_reload=True,
-    threaded=True)
-        
+        self.video_players = []
+           
+    def add_videoplayer(self, id, video_path, **kwargs):
+        player = VideoPlayer(self.app, self.server, id, video_path, **kwargs)
+        self.add_component(player.add_to_layout(),orientation='horizontal',width='50%',height='30%')
+        self.video_players.append(player)
+        return player
+       
     def add_component(self, component, orientation='vertical',width='100%',height='100%'):
-            
         if orientation == 'vertical':
             self.components.append(html.Div(component, style={'width': width}))
         elif orientation == 'horizontal':
             self.components.append(html.Div(component, style={'display': 'inline-block','width': width}))
         else:
             raise ValueError("Invalid orientation. Use 'vertical' or 'horizontal'.")
-            
-    def add_callback_video_seekTo_click_graph(self,video,graph):
+
+
+    def linear_register_callbacks(self, graph):
+        self.app.callback(
+            Output(graph.id, 'figure'),
+            Input(graph.id, 'relayoutData'),
+            Input(f'{graph.id}-max-points-input', 'value'),
+            Input(f'{graph.id}-x-axis-start-input', 'value'),
+            Input(f'{graph.id}-x-axis-end-input', 'value'),
+            Input(f'{graph.id}-vertical-line-slider', 'value'),  # Use graph.id here
+        )(graph.update_with_relayout)
+        
+
+    
+    def add_callback_click_graph_seekTo_video(self,graph,video):
         self.app.callback(
             Output(video.id, 'seekTo'),
             Input(graph.id, 'clickData'),
             State(video.id, 'duration')
-        )(video.update_video_time)
-        
-        
-        
-    def add_callback_video_scatter_update(self,graph,video):
-        self.app.callback(
-                Output(graph.id, 'figure'),
+        )(self.update_video_time)
+
+    def update_video_time(self, clickData,video_duration):
+            if clickData and clickData['points']:
+                x_click = clickData['points'][0]['x']
+                video_time = min(x_click, video_duration or 0)
+                return video_time
+            else:
+                ctx = dash.callback_context
+                if ctx.triggered:
+                    prop_id = ctx.triggered[0]['prop_id'].split('.')[0]
+                    if prop_id == self.id:
+                        return dash.no_update
+                return 0.0
+
+    def add_callback_timestamp_video_verticalline_graph(self,graph,video):
+        @self.app.callback(
+                Output(f'{graph.id}-vertical-line-slider', 'value'),
                 Input(video.id, 'currentTime')
-            )(graph.update_scatter_plot)
+            )   
+        def update_slider_value(input_value):
         
-        
-    def add_callback_graph_update_vLine(self,graph,video):
-        self.app.callback(
-                Output(graph.id, 'figure'),
-                Input(video.id, 'currentTime')
-            )(graph.add_vLine)
-        
-        
-        
+            return input_value
 
-
-
-        
     
-   
 
- 
+    
+
+    def run(self):
+        self.app.run_server(debug=True, port=3895)
+
