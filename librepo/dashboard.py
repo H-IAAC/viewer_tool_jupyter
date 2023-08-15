@@ -72,6 +72,6 @@ class DashboardApp:
 
     
 
-    def run(self):
-        self.app.run_server(debug=True, port=3895)
+    def run(self,port=8997):
+        self.app.run_server(debug=True, port=port)
 
