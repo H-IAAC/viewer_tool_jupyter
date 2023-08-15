@@ -11,11 +11,12 @@ $ source <env_name>/bin/activate
 
 (<env_name>)$ pip install -r env.txt
 
+$ jupyter lab
 
 ## Code :
--librepo/viewer_tool.py: auxiliary library for reading data and video
-<br /> -noteboks/test_api.ipynb: library test
-<br />-noteboks/main_.ipynb: user interface.
+-noteboks/main_.ipynb: user interface.
+<br />-librepo/viewer_tool.py: auxiliary library for reading data and video
+
 
 
 
