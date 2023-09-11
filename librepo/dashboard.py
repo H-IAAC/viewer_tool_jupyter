@@ -28,6 +28,9 @@ class DashboardApp:
     def linear_register_callbacks(self, graph):
         self.app.callback(
             Output(graph.id, 'figure'),
+            Output(f'{graph.id}-vertical-line-slider', 'min'),
+            Output(f'{graph.id}-vertical-line-slider', 'max'),
+            Output(f'{graph.id}-vertical-line-slider', 'marks'),
             Input(graph.id, 'relayoutData'),
             Input(f'{graph.id}-max-points-input', 'value'),
             Input(f'{graph.id}-x-axis-start-input', 'value'),
