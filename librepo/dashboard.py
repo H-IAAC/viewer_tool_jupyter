@@ -37,9 +37,10 @@ class DashboardApp:
         
     def add_callback_click_graph_seekTo_video(self, graph, video):
         self.app.callback(
-            Output(video.id, 'seekTo'),
+            Output(video.id, 'seekTo', allow_duplicate=True),
             Input(graph.id, 'clickData'),
-            State(video.id, 'duration')
+            State(video.id, 'duration'),
+            prevent_initial_call=True
         )(self.update_video_time)
 
     def update_video_time(self, click_data, video_duration):
