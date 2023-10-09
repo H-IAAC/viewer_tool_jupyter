@@ -28,6 +28,9 @@ class DashboardApp:
     def linear_register_callbacks(self, graph):
         self.app.callback(
             Output(graph.id, 'figure'),
+            Output(f'{graph.id}-vertical-line-slider', 'min'),
+            Output(f'{graph.id}-vertical-line-slider', 'max'),
+            Output(f'{graph.id}-vertical-line-slider', 'marks'),
             Input(graph.id, 'relayoutData'),
             Input(f'{graph.id}-max-points-input', 'value'),
             Input(f'{graph.id}-x-axis-start-input', 'value'),
@@ -37,9 +40,10 @@ class DashboardApp:
         
     def add_callback_click_graph_seekTo_video(self, graph, video):
         self.app.callback(
-            Output(video.id, 'seekTo'),
+            Output(video.id, 'seekTo', allow_duplicate=True),
             Input(graph.id, 'clickData'),
-            State(video.id, 'duration')
+            State(video.id, 'duration'),
+            prevent_initial_call=True
         )(self.update_video_time)
 
     def update_video_time(self, click_data, video_duration):

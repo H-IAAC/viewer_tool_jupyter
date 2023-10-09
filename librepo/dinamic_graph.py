@@ -89,5 +89,12 @@ class LinearPlot(dcc.Graph):
         self.max_points = max_points
         self.update_traces(xaxis_range)
         self.update_vertical_line(vertical_line_value)
-        return self.figure
+        print("foi")
+        minV = max(self.data_df[self.x_col].min(), x_axis_start)
+        maxV = min(self.data_df[self.x_col].max(), x_axis_end)
+        marks={
+                    minV: {'label': str(minV), 'style': {'display': 'none'}},
+                    maxV: {'label': str(maxV), 'style': {'display': 'none'}},
+                }
+        return self.figure, minV, maxV, marks
  
