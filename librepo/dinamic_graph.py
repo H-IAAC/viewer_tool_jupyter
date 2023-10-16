@@ -25,23 +25,8 @@ class LinearPlot(dcc.Graph):
                 html.Label("Max Points:"),
                 dcc.Input(id=f'{self.id}-max-points-input', type='number', value=self.max_points,
                           style={'width': '15%', 'display': 'inline-block'}),
-                html.Label("X->start-end:", style={'width': '25%', 'display': 'inline-block'}),
-                dcc.Input(id=f'{self.id}-x-axis-start-input', type='number', value=0, style={'width': '15%', 'display': 'inline-block'}),
-                dcc.Input(id=f'{self.id}-x-axis-end-input', type='number', value=self.data_df[self.x_col].max(),
-                          style={'width': '20%', 'display': 'inline-block'}),
             ], style={'display': 'flex', 'margin-top': '10px'}),
-            dcc.Slider(
-                id=f'{self.id}-vertical-line-slider',
-                min=self.data_df[self.x_col].min(),
-                max=self.data_df[self.x_col].max(),
-                step=10,
-                value=self.data_df[self.x_col].min(),
-                marks={
-                    self.data_df[self.x_col].min(): {'label': str(self.data_df[self.x_col].min()), 'style': {'display': 'none'}},
-                    self.data_df[self.x_col].max(): {'label': str(self.data_df[self.x_col].max()), 'style': {'display': 'none'}},
-                },
-                tooltip={'placement': 'bottom', 'always_visible': True}
-            ),
+          
         ])
 
     def create_figure(self):
