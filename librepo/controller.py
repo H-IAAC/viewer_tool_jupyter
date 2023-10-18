@@ -1,5 +1,7 @@
+import dash_bootstrap_components as dbc
 from dash import dcc, html, no_update
 from dash.dependencies import Input, Output
+
 
 class _InputLabel(html.Div):
     def __init__(self, label, value):
@@ -8,12 +10,20 @@ class _InputLabel(html.Div):
         self.input = dcc.Input(type="number", value=value)
 
         self.children = [self.label, self.input]
-        
+
+
 class Controller(html.Div):
     def __init__(self, app):
         super().__init__()
 
         self.app = app.app
+        self.button_icon = html.I(className="bi-play-fill")
+        self.isPlaying = False
+        self.start_stop_button = dbc.Button(
+            [self.button_icon],
+            className="btn btn-secondary",
+            style={"margin-bottom": 10},
+        )
         self.start_input = _InputLabel("Start: ", 0)
         self.end_input = _InputLabel("End: ", 0)
         self.slider = dcc.Slider(
@@ -25,6 +35,7 @@ class Controller(html.Div):
             tooltip={"placement": "bottom", "always_visible": True},
         )
         self.children = [
+            self.start_stop_button,
             html.Div([html.Label("X-axis:", style={"font-weight": "bold"})]),
             html.Div(
                 [
@@ -46,10 +57,10 @@ class Controller(html.Div):
             "border": "1px solid #ccc",
             "border-radius": 8,
         }
-        
+
     def connectToVideo(self, video):
         self.video_player = video
-        
+
         def _set_duration(duration):
             if duration == 0 or duration == None:
                 return no_update, no_update
@@ -65,6 +76,8 @@ class Controller(html.Div):
         )(_set_duration)
 
         def _set_current_time(drag_value):
+            if self.isPlaying:
+                return no_update
             return drag_value
 
         # Callback to set video current time when slider is dragged
@@ -125,3 +138,28 @@ class Controller(html.Div):
             Input(self.video_player, "currentTime"),
             prevent_initial_call=True,
         )(_loop_in_boundries)
+
+        def _start_stop_play(n_clicks):
+            if n_clicks == 0 or n_clicks == None:
+                return no_update, no_update, no_update
+            if self.isPlaying:
+                self.isPlaying = False
+                return "bi-play-fill", False, False
+            self.isPlaying = True
+            return "bi-pause-fill", True, True
+
+        self.app.callback(
+            Output(self.button_icon, "className"),
+            Output(self.video_player, "playing"),
+            Output(self.slider, "disabled"),
+            Input(self.start_stop_button, "n_clicks"),
+        )(_start_stop_play)
+
+        def _update_slider(currentTime):
+            if not self.isPlaying:
+                return no_update
+            return currentTime
+
+        self.app.callback(
+            Output(self.slider, "value"), Input(self.video_player, "currentTime")
+        )(_update_slider)

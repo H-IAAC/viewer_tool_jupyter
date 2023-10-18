@@ -1,6 +1,4 @@
 import dash_player
-from dash import dcc, html, no_update
-from dash.dependencies import Input, Output
 from flask import send_file
 
 
@@ -11,7 +9,7 @@ class VideoPlayer(dash_player.DashPlayer):
         video_path,
         width="100%",
         height="100%",
-        playing=True,
+        playing=False,
         intervalCurrentTime=1000,
         **kwargs,
     ):
@@ -21,7 +19,7 @@ class VideoPlayer(dash_player.DashPlayer):
             **kwargs,
         )
         self.loop = False
-        self.controls = True
+        self.controls = False
         self.width = width
         self.height = height
         self.video_path = video_path

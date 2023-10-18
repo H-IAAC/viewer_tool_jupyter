@@ -1,11 +1,12 @@
-from dash.dependencies import Input, Output, State
 import dash
+import dash_bootstrap_components as dbc
 from dash import html
+from dash.dependencies import Input, Output, State
 
 
 class DashboardApp:
     def __init__(self):
-        self.app = dash.Dash(__name__)
+        self.app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP, dbc.icons.BOOTSTRAP])
         self.components = []  # Store the added components
         self.app.layout = html.Div(self.components)
         self.video_count = 0
