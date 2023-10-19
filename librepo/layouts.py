@@ -4,8 +4,8 @@ import dash_html_components as html
 from dash.dependencies import Input, Output
 
 class LinearLayout(html.Div):
-    def __init__(self, children, width="match_parent", height="match_parent", orientation="horizontal", align="start", gap=0):
-        html.Div.__init__(self, children)
+    def __init__(self, children=[], width="wrap_content", height="wrap_content", orientation="horizontal", align="start", gap=0):
+        super().__init__(children)
         self._width = self._check_dimension(width)
         self._height = self._check_dimension(height)
         self._orientation = self._check_orientation(orientation)
@@ -71,6 +71,9 @@ class LinearLayout(html.Div):
         else:
             raise ValueError("Invalid gap value. Use a positive number.")
         
+    def append(self, component):
+        self.children.append(component)
+        
 class ConstraintLayout(html.Div):
     def __init__(self, components_with_constraints, width="match_parent", height="match_parent"):
         self._width = self._check_dimension(width)
@@ -81,7 +84,7 @@ class ConstraintLayout(html.Div):
             "overflow": "hidden",
             "position": "absolute"
         }
-        html.Div.__init__(self, list(map(lambda comp: comp.component, components_with_constraints)))
+        super().__init__(list(map(lambda comp: comp.component, components_with_constraints)))
         
     def _check_dimension(self, dim):
         if dim == "match_parent":
@@ -149,3 +152,11 @@ class ComponentWithConstraints:
             "bottom": self._bottom,
             "right": self._right,
         })
+        
+class HorizontalLayout(LinearLayout):
+    def __init__(self, children=[], width="match_parent", height="wrap_content", align="start", gap=0):
+        super().__init__(children, width=width, height=height, orientation="horizontal", align=align, gap=0)
+        
+class VerticalLayout(LinearLayout):
+    def __init__(self, children=[], width="wrap_content", height="match_parent", align="start", gap=0):
+        super().__init__(children, width=width, height=height, orientation="vertical", align=align, gap=0)
