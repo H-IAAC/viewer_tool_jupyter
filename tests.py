@@ -41,6 +41,7 @@ def main():
     controller.connectToVideo(player)
 
     acc_sitting_upperarm = LinearPlot(
+        app,
         data_df=acc_sitting_upperarm,
         x_col="sec",
         y_cols=["attr_x", "attr_y", "attr_z"],

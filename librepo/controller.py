@@ -36,7 +36,6 @@ class Controller(html.Div):
         )
         self.children = [
             self.start_stop_button,
-            html.Div([html.Label("X-axis:", style={"font-weight": "bold"})]),
             html.Div(
                 [
                     self.start_input,
@@ -169,7 +168,8 @@ class Controller(html.Div):
         self.children.append(graph)
 
         self.app.callback(
-            Output(graph.graph, "figure"), Input(self.video_player, "currentTime"),
+            Output(graph.graph, "figure"),
+            Input(self.video_player, "currentTime"),
         )(graph.update_vertical_line)
 
         def teste(data):
