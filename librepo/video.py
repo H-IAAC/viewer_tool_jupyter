@@ -30,6 +30,8 @@ class VideoPlayer(dash_player.DashPlayer):
             self.url, f"serve_video_{self.url}", self.serve_video, methods=["GET"]
         )
 
+        self.style = {"margin": 2}
+
     def serve_video(self):
         return send_file(self.video_path, mimetype="video/mp4")
 

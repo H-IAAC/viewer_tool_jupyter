@@ -22,7 +22,7 @@ class Controller(html.Div):
         self.start_stop_button = dbc.Button(
             [self.button_icon],
             className="btn btn-secondary",
-            style={"margin-bottom": 10},
+            style={"margin-bottom": 10, "margin-right": 5},
         )
         self.start_input = _InputLabel("Start: ", 0)
         self.end_input = _InputLabel("End: ", 0)
@@ -35,9 +35,9 @@ class Controller(html.Div):
             tooltip={"placement": "bottom", "always_visible": True},
         )
         self.children = [
-            self.start_stop_button,
             html.Div(
                 [
+                    self.start_stop_button,
                     self.start_input,
                     html.Div(style={"width": 30}),
                     self.end_input,
@@ -48,10 +48,10 @@ class Controller(html.Div):
                     "margin-bottom": 10,
                 },
             ),
-            self.slider,
+            html.Div([self.slider], style={"margin-left": -2, "margin-right": 58}),
         ]
         self.style = {
-            "margin": 10,
+            "margin": 2,
             "padding": 10,
             "border": "1px solid #ccc",
             "border-radius": 8,
