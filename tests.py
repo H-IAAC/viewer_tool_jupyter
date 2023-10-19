@@ -1,8 +1,8 @@
-from librepo.controller import Controller
-from librepo.dinamic_graph import LinearPlot
-from librepo.dashboard import DashboardApp
 import pandas as pd
 
+from librepo.controller import Controller
+from librepo.dashboard import DashboardApp
+from librepo.dinamic_graph import LinearPlot
 from librepo.layouts import HorizontalLayout
 from librepo.video import VideoPlayer
 
@@ -49,31 +49,25 @@ def main():
         id="linear-plot",
         title="acc sitting upperarm",
     )
+
+    acc_sitting_shin = LinearPlot(
+        app,
+        data_df=acc_sitting_shin,
+        x_col="sec",
+        y_cols=["attr_x", "attr_y", "attr_z"],
+        max_points=50,
+        id="acc_sitting_shin",
+        title="acc sitting shin",
+    )
+
     controller.addGraph(acc_sitting_upperarm)
-
-    # acc_sitting_shin = LinearPlot(data_df=acc_sitting_shin, x_col='sec', y_cols=['attr_x', 'attr_y', 'attr_z'],
-    #                                max_points=50, id='acc_sitting_shin',title='acc sitting shin')
-
-    # vertical_layout = VerticalLayout()
-    # vertical_layout.append(acc_sitting_shin)
-    # vertical_layout.append(acc_sitting_upperarm)
+    controller.addGraph(acc_sitting_shin)
 
     horizontal_layout = HorizontalLayout()
     horizontal_layout.append(player)
     horizontal_layout.append(controller)
 
-    # horizontal_layout.append(vertical_layout)
-
     app.add_component(horizontal_layout)
-
-    # # Registrar eventos y callbacks
-    # app.linear_register_callbacks(acc_sitting_shin)
-    # app.add_callback_click_graph_seekTo_video(acc_sitting_shin, player)
-    # app.add_callback_timestamp_video_verticalline_graph(acc_sitting_shin, player)
-
-    # app.linear_register_callbacks(acc_sitting_upperarm)
-    # app.add_callback_timestamp_video_verticalline_graph(acc_sitting_upperarm, player)
-    # app.add_callback_click_graph_seekTo_video(acc_sitting_upperarm, player)
 
     app.run()
 
