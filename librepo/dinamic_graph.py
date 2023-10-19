@@ -12,8 +12,8 @@ class LinearPlot(html.Div):
         self.max_points = max_points
         self.title = title
 
-        # Register callbacks
-        # self.register_callbacks()
+        self.x_axis_start = 0
+        self.x_axis_end = 0
 
         self.graph = dcc.Graph(
             figure=self.create_figure(),
@@ -24,7 +24,7 @@ class LinearPlot(html.Div):
             self.graph,
             html.Div(
                 [
-                    html.Label("Max Points:"),
+                    html.Label("Max Points:", style={"margin-right": 5}),
                     dcc.Input(
                         type="number",
                         value=self.max_points,
@@ -53,23 +53,41 @@ class LinearPlot(html.Div):
 
         return fig
 
-    def update_traces(self, xaxis_range):
+    def update_traces(self, x_axis_start, x_axis_end):
+        if x_axis_start == self.x_axis_start and x_axis_end == self.x_axis_end:
+            return no_update
+
         filtered_df = self.data_df[
-            (self.data_df[self.x_col] >= xaxis_range[0])
-            & (self.data_df[self.x_col] <= xaxis_range[1])
+            (self.data_df[self.x_col] >= x_axis_start)
+            & (self.data_df[self.x_col] <= x_axis_end)
         ]
-        step = (
-            len(filtered_df) // self.max_points
-            if len(filtered_df) > self.max_points
-            else 1
-        )
-        sampled_df = filtered_df.iloc[::step]
+        # step = (
+        #     len(filtered_df) // self.max_points
+        #     if len(filtered_df) > self.max_points
+        #     else 1
+        # )
+        # sampled_df = filtered_df.iloc[::step]
 
         with self.graph.figure.batch_update():
-            for trace in self.figure.data:
+            for trace in self.graph.figure.data:
                 y_col = trace.name
-                trace.x = sampled_df[self.x_col]
-                trace.y = sampled_df[y_col]
+                trace.x = filtered_df[self.x_col]
+                trace.y = filtered_df[y_col]
+        return self.graph.figure
+
+    def update_start_end(self, relayoutData):
+        if (
+            relayoutData
+            and "xaxis.range[0]" in relayoutData
+            and "xaxis.range[1]" in relayoutData
+        ):
+            self.x_axis_start = relayoutData["xaxis.range[0]"]
+            self.x_axis_end = relayoutData["xaxis.range[1]"]
+            return relayoutData["xaxis.range[0]"], relayoutData["xaxis.range[1]"]
+        elif relayoutData and "xaxis.autorange" in relayoutData:
+            return 0, self.data_df[self.x_col].max()
+        else:
+            return no_update, no_update
 
     def update_vertical_line(self, vertical_line_x):
         if vertical_line_x == None or self.graph.figure == None:
@@ -92,6 +110,7 @@ class LinearPlot(html.Div):
         }
         with self.graph.figure.batch_update():
             self.graph.figure.layout.shapes = [vertical_line]
+        self.graph.figure.layout.uirevision = "1"
         return self.graph.figure
 
     def update_with_relayout(

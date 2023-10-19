@@ -6,15 +6,15 @@ from dash.dependencies import Input, Output
 class _InputLabel(html.Div):
     def __init__(self, label, value):
         super().__init__()
-        self.label = html.Label(label)
+        self.label = html.Label(label, style={"margin-right": 5})
         self.input = dcc.Input(type="number", value=value)
 
         self.children = [self.label, self.input]
 
 
 class Controller(html.Div):
-    def __init__(self, app):
-        super().__init__()
+    def __init__(self, app, width="100%", **kwargs):
+        super().__init__(**kwargs)
 
         self.app = app.app
         self.button_icon = html.I(className="bi-play-fill")
@@ -56,6 +56,7 @@ class Controller(html.Div):
             "padding": 10,
             "border": "1px solid #ccc",
             "border-radius": 8,
+            "width": width,
         }
 
     def connectToVideo(self, video):
@@ -85,7 +86,7 @@ class Controller(html.Div):
             Output(self.video_player, "seekTo"), Input(self.slider, "drag_value")
         )(_set_current_time)
 
-        def _set_min_max_value(start_value, end_value):
+        def _set_start_end_value(start_value, end_value):
             if start_value == None or end_value == None:
                 return no_update, no_update
             return start_value, end_value
@@ -97,9 +98,9 @@ class Controller(html.Div):
             Input(self.start_input.input, "value"),
             Input(self.end_input.input, "value"),
             prevent_initial_call=True,
-        )(_set_min_max_value)
+        )(_set_start_end_value)
 
-        def _check_min_max_value(start_value, end_value):
+        def _check_start_end_value(start_value, end_value):
             if start_value == None or end_value == None:
                 return no_update, no_update
             if start_value > end_value - 2:
@@ -112,14 +113,14 @@ class Controller(html.Div):
                 return no_update, self.duration
             return no_update, no_update
 
-        # Callback that make min and max values stay within boundries
+        # Callback that make start and end values stay within boundries
         self.app.callback(
             Output(self.start_input.input, "value", allow_duplicate=True),
             Output(self.end_input.input, "value", allow_duplicate=True),
             Input(self.start_input.input, "value"),
             Input(self.end_input.input, "value"),
             prevent_initial_call=True,
-        )(_check_min_max_value)
+        )(_check_start_end_value)
 
         def _loop_in_boundries(start_value, end_value, currentTime):
             if start_value == None or end_value == None:
@@ -130,7 +131,7 @@ class Controller(html.Div):
                 return no_update
             return start_value
 
-        # Callback loop video between min and max
+        # Callback loop video between start and end
         self.app.callback(
             Output(self.video_player, "seekTo", allow_duplicate=True),
             Input(self.start_input.input, "value"),
@@ -168,5 +169,27 @@ class Controller(html.Div):
         self.children.append(graph)
 
         self.app.callback(
-            Output(graph.graph, "figure"), Input(self.video_player, "currentTime")
+            Output(graph.graph, "figure"), Input(self.video_player, "currentTime"),
         )(graph.update_vertical_line)
+
+        def teste(data):
+            print("relayoutData")
+            print(data)
+            return no_update
+
+        self.app.callback(
+            Output(self.video_player, "className"), Input(graph.graph, "relayoutData")
+        )(teste)
+
+        self.app.callback(
+            Output(graph.graph, "figure", allow_duplicate=True),
+            Input(self.start_input.input, "value"),
+            Input(self.end_input.input, "value"),
+            prevent_initial_call=True,
+        )(graph.update_traces)
+
+        self.app.callback(
+            Output(self.start_input.input, "value"),
+            Output(self.end_input.input, "value"),
+            Input(graph.graph, "relayoutData"),
+        )(graph.update_start_end)
