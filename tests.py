@@ -40,8 +40,15 @@ def main():
     controller = Controller(app)
     controller.connectToVideo(player)
 
-    # acc_sitting_upperarm = LinearPlot(data_df=acc_sitting_upperarm, x_col='sec', y_cols=['attr_x', 'attr_y', 'attr_z'],
-    #                                    max_points=50, id='linear-plot',title='acc sitting upperarm')
+    acc_sitting_upperarm = LinearPlot(
+        data_df=acc_sitting_upperarm,
+        x_col="sec",
+        y_cols=["attr_x", "attr_y", "attr_z"],
+        max_points=50,
+        id="linear-plot",
+        title="acc sitting upperarm",
+    )
+    controller.addGraph(acc_sitting_upperarm)
 
     # acc_sitting_shin = LinearPlot(data_df=acc_sitting_shin, x_col='sec', y_cols=['attr_x', 'attr_y', 'attr_z'],
     #                                max_points=50, id='acc_sitting_shin',title='acc sitting shin')
@@ -53,8 +60,7 @@ def main():
     horizontal_layout = HorizontalLayout()
     horizontal_layout.append(player)
     horizontal_layout.append(controller)
-    
-    
+
     # horizontal_layout.append(vertical_layout)
 
     app.add_component(horizontal_layout)

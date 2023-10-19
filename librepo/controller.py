@@ -163,3 +163,10 @@ class Controller(html.Div):
         self.app.callback(
             Output(self.slider, "value"), Input(self.video_player, "currentTime")
         )(_update_slider)
+
+    def addGraph(self, graph):
+        self.children.append(graph)
+
+        self.app.callback(
+            Output(graph.graph, "figure"), Input(self.video_player, "currentTime")
+        )(graph.update_vertical_line)
