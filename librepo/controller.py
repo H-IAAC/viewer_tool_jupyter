@@ -1,6 +1,6 @@
 import dash_bootstrap_components as dbc
-from dash import dcc, html, no_update
-from dash.dependencies import Input, Output
+from dash import dcc, html, no_update, callback_context
+from dash.dependencies import Input, Output, State
 
 
 class _InputLabel(html.Div):
@@ -172,15 +172,6 @@ class Controller(html.Div):
             Input(self.video_player, "currentTime"),
         )(graph.update_vertical_line)
 
-        def teste(data):
-            print("relayoutData")
-            print(data)
-            return no_update
-
-        self.app.callback(
-            Output(self.video_player, "className"), Input(graph.graph, "relayoutData")
-        )(teste)
-
         self.app.callback(
             Output(graph.graph, "figure", allow_duplicate=True),
             Input(self.start_input.input, "value"),
@@ -189,7 +180,29 @@ class Controller(html.Div):
         )(graph.update_traces)
 
         self.app.callback(
-            Output(self.start_input.input, "value"),
-            Output(self.end_input.input, "value"),
+            Output(self.start_input.input, "value", allow_duplicate=True),
+            Output(self.end_input.input, "value", allow_duplicate=True),
             Input(graph.graph, "relayoutData"),
+            prevent_initial_call=True,
         )(graph.update_start_end)
+
+        def _update_video_time(click_data, video_duration):
+            if click_data and click_data["points"]:
+                x_click = click_data["points"][0]["x"]
+                video_time = min(x_click, video_duration or 0)
+                return video_time, video_time
+            else:
+                ctx = callback_context
+                if ctx.triggered:
+                    prop_id = ctx.triggered[0]["prop_id"].split(".")[0]
+                    if prop_id == self.id:
+                        return no_update, no_update
+                return 0.0, 0.0
+
+        self.app.callback(
+            Output(self.video_player, "seekTo", allow_duplicate=True),
+            Output(self.slider, "value", allow_duplicate=True),
+            Input(graph.graph, "clickData"),
+            State(self.video_player, "duration"),
+            prevent_initial_call=True,
+        )(_update_video_time)
