@@ -11,13 +11,13 @@ virtualenv viewer_env
 
 $ source viewer_env/bin/activate
 
-(<env_name>)$ pip install -r env.txt
+(<env_name>)$ pip install -r requirements.txt
 
 $ jupyter lab
 
 ## Code :
 -noteboks/main_.ipynb: user interface.
-<br />-librepo/viewer_tool.py: auxiliary library for reading data and video
+<br />
 
 
 
