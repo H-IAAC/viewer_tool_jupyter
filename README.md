@@ -7,7 +7,7 @@ $ git clone git@github.com:H-IAAC/viewer_tool_jupyter.git
 $ cd viewer_tool_jupyter
 ## virtualenv 
 
-virtualenv viewer_env
+$ virtualenv viewer_env
 
 $ source viewer_env/bin/activate
 
@@ -15,9 +15,11 @@ $ source viewer_env/bin/activate
 
 $ jupyter lab
 
-## Code :
--noteboks/main_.ipynb: user interface.
-<br />
+## Tutorial:
+-Para o dataset capturado com os dados do aplicativo executar o arquivo download_files_unicamp.ipynb
+- -  executar main_unicamp
+-Para o dataset publico executar o arquivo download_files_public_dataset.ipynb
+- -  executar main_public_dataset.ipynb
 
 
 
