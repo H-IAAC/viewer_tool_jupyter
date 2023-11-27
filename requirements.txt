@@ -2,5 +2,6 @@ pandas
 plotly
 dash
 dash-player
-dash-bootstrap-components
 ipywidgets
+dash_bootstrap_components
+jupyterlab
