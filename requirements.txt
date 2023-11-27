@@ -5,3 +5,4 @@ dash-player
 ipywidgets
 dash_bootstrap_components
 jupyterlab
+tqdm
