@@ -16,14 +16,14 @@ $ source viewer_env/bin/activate
 $ jupyter lab
 
 ## Tutorial:
--Para o dataset capturado com os dados do aplicativo executar:
- --O arquivo download_files_unicamp.ipynb
+Para o dataset capturado com os dados do aplicativo executar:
+-O arquivo download_files_unicamp.ipynb
 - Executar main_unicamp
  
     
--Para o dataset publico executar:
---o arquivo download_files_public_dataset.ipynb
---executar main_public_dataset.ipynb
+Para o dataset publico executar:
+-o arquivo download_files_public_dataset.ipynb
+-executar main_public_dataset.ipynb
 
 
 
