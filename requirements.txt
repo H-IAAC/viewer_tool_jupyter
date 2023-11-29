@@ -3,6 +3,6 @@ plotly
 dash
 dash-player
 ipywidgets
-dash_bootstrap_components
-jupyterlab
 tqdm
+jupyterlab
+dash_bootstrap_components
