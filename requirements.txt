@@ -6,3 +6,4 @@ ipywidgets
 tqdm
 jupyterlab
 dash_bootstrap_components
+urllib3==1.26.6
