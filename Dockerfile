@@ -4,6 +4,7 @@ FROM alpine:${ALPINE_VERSION}
 
 EXPOSE 8888
 EXPOSE 8050
+EXPOSE 8997
 
 RUN apk add --update --no-cache python3 && ln -sf python3 /usr/bin/python
 RUN python3 -m ensurepip

@@ -23,6 +23,7 @@ class DashboardApp:
     def run(self, port=8997):
         self.app.run_server(
             port=port,
+            host='0.0.0.0',
             dev_tools_ui=True,
             debug=False,
             dev_tools_hot_reload=True,
