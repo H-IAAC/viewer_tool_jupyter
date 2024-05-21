@@ -24,8 +24,8 @@ WORKDIR ${SRC_PATH}
 
 COPY ./ ${SRC_PATH}
 
-RUN pip3 install -r ${SRC_PATH}/requirements.txt
-
+RUN pip install --upgrade pip
+RUN pip3 install -r ${SRC_PATH}/requirements.txt --ignore-installed
 
 
 CMD ["jupyter", "lab", "--ip", "0.0.0.0", "--no-browse", "--allow-root"]
