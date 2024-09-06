@@ -1,0 +1,8 @@
+left_label,change_point_name,change_point_time,sensor_ref,timestamp
+SITTING,change_point_1,timestamp_server,Value 1,38.33687059538275
+STANDING,change_point_2,timestamp_server,Value 1,55.776182406692406
+RUN,change_point_3,timestamp_server,Value 1,75.71070190707965
+WALKING_SPONTANEOUS,change_point_4,timestamp_server,Value 1,119.0995612750836
+SITTING,change_point_5,timestamp_server,Value 1,240.4514073359073
+SITTING,change_point_6,timestamp_server,Value 1,326.7925520048603
+SITTING,change_point_7,timestamp_server,Value 1,409.55915861482384

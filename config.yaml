@@ -1,0 +1,13 @@
+server:
+  port: 8059  # Porta do servidor
+  debug: true  # Modo debug
+
+layout:
+  background_color: "#fff4cc"  # Cor de fundo do layout
+  padding: "20px"
+  max_height: "100vh"  # Altura máxima do vídeo
+  font_color: "#333333"  # Cor da fonte
+
+video_player:
+  width: "100%"
+  height: "auto"
