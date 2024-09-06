@@ -11,3 +11,16 @@ layout:
 video_player:
   width: "100%"
   height: "auto"
+ativities: [
+                    'SITTING',
+                    'STANDING',
+                    'WALKING_UPSTAIRS',
+                    'WALKING_DOWNSTAIRS',
+                    'WALKING_SPONTANEOUS',
+                    'RUN',
+                    'WALKING_FAST',
+                    'ELEVATOR_UP',
+                    'ELEVATOR_DOWN',
+                    'WALKING_IN_DOOR',
+                    'DISTRACTED_WALKING'
+]

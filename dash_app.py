@@ -22,7 +22,7 @@ class DashApp:
     def _create_layout(self):
         controls_load_data_sensors = ControlsLoadData()
         plot_brush = PlotBrush()
-        control_chekpoint = ControlsChekpoint()
+        control_chekpoint = ControlsChekpoint(self.config)
         load_zoom_layout = LoadZoom()
         video_player = VideoPlayer(id_upload='upload-video', id_output='output-video-player')
         load_data_activities_layout = LoadProtocol()

@@ -8,20 +8,8 @@ import flask
 
 # Classe Controls para o menu de controle
 class ControlsChekpoint(html.Div):
-    def __init__(self):
-        atividades = [
-                    'SITTING',
-                    'STANDING',
-                    'WALKING_UPSTAIRS',
-                    'WALKING_DOWNSTAIRS',
-                    'WALKING_SPONTANEOUS',
-                    'RUN',
-                    'WALKING_FAST',
-                    'ELEVATOR_UP',
-                    'ELEVATOR_DOWN',
-                    'WALKING_IN_DOOR',
-                    'DISTRACTED_WALKING'
-]
+    def __init__(self,config):
+        atividades=config['ativities']
         #change_points_name=df_protocol['change_point_name'].unique()
         change_points_time= ['timestamp_server', 'timestamp_local']
         super().__init__([
