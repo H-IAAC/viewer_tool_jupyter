@@ -106,9 +106,7 @@ class TrackProject:
 
         # Criar o tracker CSRT
         self.tracker = cv2.legacy.TrackerCSRT_create()
-        tracker_initialized = False
-
-               
+        tracker_initialized = False              
 
         bbox = self.cord  # Calcular a largura e altura do bounding box
 

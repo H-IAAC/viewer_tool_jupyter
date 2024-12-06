@@ -206,4 +206,4 @@ def tracking_status():
 
 if __name__ == '__main__':
     app.secret_key = 'your_secret_key'  # Para mensagens flash
-    app.run(debug=True,port=5056)
+    app.run(debug=True,port=5059)

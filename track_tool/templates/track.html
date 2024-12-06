@@ -8,7 +8,7 @@
 </head>
 <body>
 
-    
+   
     
     <div class="dashboard-container">
         <div class="sidebar">
@@ -17,7 +17,12 @@
                 <button id="download_video" onclick="window.location.href = '/download_video'">download_video</button>
                 <img src="" id="videoFeed" width="640" height="480" style="display:none;">
 
-             
+                <h1>Select Tracking Mode</h1>
+    <select onchange="sendTrackingMode(this.value)">
+        <option value="object_track">Object Track</option>
+        <option value="face_track">Face Track</option>
+        <option value="all_faces">All Faces</option>
+    </select>
                 
             </div>
             <!-- Mensagem de carregamento -->
@@ -90,6 +95,17 @@
     <script src="{{ url_for('static', filename='js/square.js') }}"></script>
 
     <script>
+
+function sendTrackingMode(mode) {
+            fetch('/set_mode', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ tracking_mode: mode })
+            }).then(response => response.json())
+              .then(data => console.log("Response:", data))
+              .catch(error => console.error("Error:", error));
+        }
+
             const stopButton = document.getElementById('stop-button');
 
         let trackingInProgress = false;
