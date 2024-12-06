@@ -23,6 +23,8 @@ class TrackProject:
         self.status=""
         self.timestamp=0
         self.cord =(15.15, 20.67, 213.45, 213.45)
+        self.tracker_initialized = False
+        self.tracking_mode="object_track"
 
     def set_project_name(self,name):
         self.project_name=name
@@ -35,6 +37,10 @@ class TrackProject:
     def set_bounding_box(self,bounding_box):       
         self.cord=tuple(map(float, bounding_box.split(',')))
         print(self.cord)
+
+    def set_tracking_mode(self,tracking_mode):
+        self.tracking_mode=tracking_mode
+    
 
 
     def set_video_path(self,video_path):
@@ -50,8 +56,18 @@ class TrackProject:
 
             # Inicia o rastreamento em um novo thread
             self.tracking_in_progress = True
-            #result=self.generate_frames(start_time)
-            result=self.track_yolo(start_time)
+            if self.tracking_mode == "object_track":
+                result=self.track_yolo_object(start_time)
+            elif self.tracking_mode == "face_track":
+                result=self.track_yolo_face(start_time)
+            elif self.tracking_mode == "all_faces":
+               result=self.track_yolo_allfaces(start_time)
+            else:
+                message = "Modo de rastreamento inválido."
+                print("Erro: modo de rastreamento não reconhecido.")
+            
+            
+            
 
             return result
 
@@ -75,7 +91,7 @@ class TrackProject:
 
     
     
-    def track_yolo(self, start_time):
+    def track_yolo_object(self, start_time):
         print("Starting face tracking...")
 
         # Carregar o template e vídeo
@@ -89,7 +105,7 @@ class TrackProject:
             return {'state_progress': 'error', 'message': 'Video or template failed to load'}
 
         # Criar o tracker CSRT
-        tracker = cv2.legacy.TrackerCSRT_create()
+        self.tracker = cv2.legacy.TrackerCSRT_create()
         tracker_initialized = False
 
                
@@ -102,15 +118,18 @@ class TrackProject:
                 print("Fim do vídeo ou erro ao carregar frame.")
                 break
 
-            # Inicializar o tracker com o bounding box no primeiro frame
-            if not tracker_initialized:
+          
+          
+            if not self.tracker_initialized:
                 print(f"Inicializando tracker com bbox: {bbox} e frame shape: {frame.shape}")
-                tracker.init(frame, bbox)
-                tracker_initialized = True
+                self.tracker.init(frame, bbox)
+                self.tracker_initialized = True
+                first_frame = frame.copy()  # Armazenar o primeiro frame
+                first_bbox = bbox  # Armazenar o primeiro bounding box
                 print("initttttttttt")
 
             # Atualizar o tracker com o novo frame
-            success, bbox = tracker.update(frame)
+            success, bbox = self.tracker.update(frame)
 
             if success:
                 # Desenhar a caixa rastreada no frame
@@ -119,6 +138,9 @@ class TrackProject:
                 cv2.rectangle(frame, p1, p2, (0, 0, 0), -1)
             else:
                 print("falha no rastreamento")
+                if first_frame is not None and first_bbox is not None:
+                    print("Restaurando o primeiro frame e bbox após falha")
+                    self.tracker.init(first_frame, first_bbox)  # Re-i
                 # Se o rastreamento falhar, exibir uma mensagem
                 cv2.putText(frame, "Falha no rastreamento", (20, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
 
@@ -142,7 +164,95 @@ class TrackProject:
 
 
 
-    def generate_frames(self,start_time):
+    def track_yolo_face(self, start_time):
+        print("Iniciando rastreamento da face...")
+
+        # Carregar o vídeo
+        cap = cv2.VideoCapture(self.video_path)
+        cap.set(cv2.CAP_PROP_POS_MSEC, start_time * 1000)  # Configura o ponto de início no vídeo
+
+        # Verificar se o vídeo foi carregado corretamente
+        if not cap.isOpened():
+            print("Erro: Não foi possível abrir o vídeo.")
+            return {'state_progress': 'error', 'message': 'Video failed to load'}
+
+        # Carregar o classificador Haar Cascade para detecção de faces
+        face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
+
+        # Verificar se o classificador foi carregado corretamente
+        if face_cascade.empty():
+            print("Erro: Não foi possível carregar o classificador Haar.")
+            return {'state_progress': 'error', 'message': 'Haar Cascade classifier failed to load'}
+
+        # Inicializar o tracker CSRT
+        self.tracker = cv2.legacy.TrackerCSRT_create()
+
+        first_frame = None
+        first_bbox = None  # Coordenadas da caixa delimitadora da face
+
+        while cap.isOpened():
+            ret, frame = cap.read()
+            if not ret or frame is None:
+                print("Fim do vídeo ou erro ao carregar frame.")
+                break
+
+            # Detectar faces no primeiro frame
+            if not self.tracker_initialized:
+                gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+                faces = face_cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=5, minSize=(30, 30))
+
+                if len(faces) > 0:
+                    # Seleciona a primeira face detectada
+                    x, y, w, h = faces[0]
+                    bbox = (x, y, w, h)
+                    print(f"Face detectada com bbox: {bbox} e shape do frame: {frame.shape}")
+
+                    # Inicializa o tracker com a caixa delimitadora da face
+                    self.tracker.init(frame, bbox)
+                    self.tracker_initialized = True
+                    first_frame = frame.copy()  # Armazenar o primeiro frame
+                    first_bbox = bbox  # Armazenar a primeira caixa delimitadora
+                    print("Tracker inicializado com sucesso!")
+
+                else:
+                    print("Nenhuma face detectada no primeiro frame.")
+                    break
+
+            # Atualizar o tracker com o novo frame
+            success, bbox = self.tracker.update(frame)
+
+            if success:
+                # Desenhar a caixa rastreada no frame sem adicionar deslocamento extra
+                p1 = (int(bbox[0])-40, int(bbox[1]+40))
+                p2 = (int(bbox[0] + bbox[2]-40), int(bbox[1] + bbox[3]+40))
+                cv2.rectangle(frame, p1, p2, (0, 0, 0), -1)
+            else:
+                print("Falha no rastreamento")
+                if first_frame is not None and first_bbox is not None:
+                    print("Restaurando o primeiro frame e bbox após falha")
+                    self.tracker.init(first_frame, first_bbox)  # Reinicia o rastreamento com a face original
+                cv2.putText(frame, "Falha no rastreamento", (20, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 2)
+
+
+            # Exibir o frame com a caixa de rastreamento
+            # cv2.imshow('Tracking', frame)
+            _, buffer = cv2.imencode('.jpg', frame)
+            yield (b'--frame\r\n'
+                   b'Content-Type: image/jpeg\r\n\r\n' + buffer.tobytes() + b'\r\n')
+
+            # Interromper o processo caso a tecla 'q' seja pressionada
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                break
+
+        # Liberação de recursos
+        cap.release()
+        cv2.destroyAllWindows()
+
+        print("Rastreamento concluído.")
+        return {'state_progress': 'completed', 'message': 'Tracking completed successfully'}
+
+
+    def generate_face(self,start_time):
   
         global tracking_progress, rectangles
         template = cv2.imread(self.template_path, cv2.IMREAD_COLOR)
