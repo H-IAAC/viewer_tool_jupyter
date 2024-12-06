@@ -50,7 +50,7 @@ class TrackProject:
 
             # Inicia o rastreamento em um novo thread
             self.tracking_in_progress = True
-            #result=self.track_face(start_time)
+            #result=self.generate_frames(start_time)
             result=self.track_yolo(start_time)
 
             return result
@@ -92,13 +92,9 @@ class TrackProject:
         tracker = cv2.legacy.TrackerCSRT_create()
         tracker_initialized = False
 
-        # Dimensões do bounding box inicial
-        x1, y1, x2, y2 = self.cord
+               
 
-        
-        
-
-        bbox = (x1, y1, x2, y2)  # Calcular a largura e altura do bounding box
+        bbox = self.cord  # Calcular a largura e altura do bounding box
 
         while cap.isOpened():
             ret, frame = cap.read()
@@ -111,6 +107,7 @@ class TrackProject:
                 print(f"Inicializando tracker com bbox: {bbox} e frame shape: {frame.shape}")
                 tracker.init(frame, bbox)
                 tracker_initialized = True
+                print("initttttttttt")
 
             # Atualizar o tracker com o novo frame
             success, bbox = tracker.update(frame)
@@ -121,15 +118,20 @@ class TrackProject:
                 p2 = (int(bbox[0] + bbox[2]), int(bbox[1] + bbox[3]))
                 cv2.rectangle(frame, p1, p2, (0, 0, 0), -1)
             else:
+                print("falha no rastreamento")
                 # Se o rastreamento falhar, exibir uma mensagem
                 cv2.putText(frame, "Falha no rastreamento", (20, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
 
             # Exibir o frame com a caixa de rastreamento
-            cv2.imshow('Tracking', frame)
+            #cv2.imshow('Tracking', frame)
+            _, buffer = cv2.imencode('.jpg', frame)
+            yield (b'--frame\r\n'
+                b'Content-Type: image/jpeg\r\n\r\n' + buffer.tobytes() + b'\r\n')
 
             # Interromper o processo caso a tecla 'q' seja pressionada
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
+
 
         # Liberação de recursos
         cap.release()
@@ -146,6 +148,8 @@ class TrackProject:
         template = cv2.imread(self.template_path, cv2.IMREAD_COLOR)
         print(self.template_path, '  ',self.video_path)
         cap = cv2.VideoCapture(self.video_path)
+        cap.set(cv2.CAP_PROP_POS_MSEC, start_time * 1000)
+
         tracker = cv2.TrackerKCF_create()
         face_detected = False
 
@@ -169,7 +173,7 @@ class TrackProject:
                 if max_val >= 0.5:
                     x, y = max_loc
                     w, h = template.shape[1], template.shape[0]
-                    tracker.init(frame, (x, y, w, h))
+                    #tracker.init(frame, (x, y, w, h))
                     face_detected = True
             else:
                 success, bbox = tracker.update(frame)
