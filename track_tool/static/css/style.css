@@ -1,0 +1,232 @@
+.main-title {
+    text-align: center;     /* Centraliza horizontalmente */
+    margin-bottom: 20px;    /* Espaço abaixo do título */
+    width: 100%;            /* Garante que ocupa toda a largura */
+}
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #121212;
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+.dashboard-container {
+    display: flex;
+    flex-direction: column;
+    width: 30%;
+    height: 80%;
+}
+
+.video-section {
+    display: flex;
+    justify-content: space-between;
+    flex-grow: 1;
+    position: relative;
+    width: 60%;
+}
+
+.video-container {
+    
+    width: 50%;
+    height: 60%;
+}
+
+#video-player {
+    width: 100%;
+    height: 100%;
+    border-radius: 10px;
+}
+
+.video-title {
+    text-align: center;
+    color: #1DB954;
+    font-size: 18px;
+    margin-top: 10px;
+}
+
+.sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    padding: 10px;
+    background-color: #222;
+    border-radius: 10px;
+    align-items: center;
+    width: 40%;
+}
+
+.sidebar h2 {
+    text-align: center;
+    color: #1DB954;
+}
+
+.horizontal-controls {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+}
+
+.horizontal-controls button {
+    background-color: #1DB954;
+    border: none;
+    border-radius: 5px;
+    padding: 10px;
+    cursor: pointer;
+    color: white;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.horizontal-controls button:hover {
+    background-color: #1ed760;
+}
+
+.vertical-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+}
+
+.vertical-controls button {
+    padding: 10px;
+    background-color: #555;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.vertical-controls button:hover {
+    background-color: #777;
+}
+
+.icon {
+    font-size: 18px;
+}
+
+.slider-container {
+    width: 100%;
+    margin-top: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.slider {
+    width: 80%;
+    -webkit-appearance: none;
+    background: #555;
+    border-radius: 5px;
+    height: 10px;
+    cursor: pointer;
+}
+
+.slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 15px;
+    height: 15px;
+    background: #1DB954;
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+.time-display {
+    margin-left: 10px;
+    font-size: 16px;
+    color: #fff;
+}
+
+.carousel-container {
+    width: 100%;
+    margin-top: 10px;
+    overflow-x: scroll;
+    display: flex;
+    gap: 10px;
+}
+
+.carousel-image {
+    width: 60px;
+    height: auto;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+/* Loading message */
+.loading-message {
+    display: none;
+    color: #fff;
+    font-size: 18px;
+    text-align: center;
+    margin-top: 20px;
+}
+#draggable-square {
+    position: absolute;
+    width: 100px;
+    height: 100px;
+    border: 2px solid #1DB954;
+    background-color: rgba(0, 0, 0, 0.3);
+    cursor: grab;
+    border-radius: 4px;
+}
+
+.resize-handle {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    background-color: #1DB954;
+    border-radius: 50%;
+    cursor: se-resize;
+    right: 0;
+    bottom: 0;
+}
+
+/* Canvas */
+#crop-result {
+    margin-top: 20px;
+    border: 2px solid #1DB954;
+    border-radius: 4px;
+    display: none;
+}
+
+
+#customDialog {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: rgb(39, 204, 53);
+    padding: 20px;
+    border: 1px solid #ccc;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    text-align: center;
+}
+#customDialog button {
+    margin-top: 10px;
+    padding: 5px 10px;
+}
+#overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+}
+
+.canvas-pair {
+    display: flex; /* Definir o layout flex */
+    gap: 10px; /* Espaço entre os canvases */
+}

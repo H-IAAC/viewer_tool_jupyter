@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Player com Controles Laterais</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+    
+    
+    <div class="dashboard-container">
+        <div class="sidebar">
+            <div class="vertical-controls">
+                <button id="load-project" onclick="window.location.href='/'">Carregar Projeto</button>
+                <button id="download_video" onclick="window.location.href = '/download_video'">download_video</button>
+                <img src="" id="videoFeed" width="640" height="480" style="display:none;">
+
+             
+                
+            </div>
+            <!-- Mensagem de carregamento -->
+            <div id="loading-message" class="loading-message">Carregando vídeo... 0%</div>
+        </div>
+    </div>
+    <div class="video-section">
+        <div class="video-container">
+            <video id="video-player" src="{{ url_for('static', filename=video_path) }}" type="video/mp4"></video>
+
+            <div id="draggable-square">
+                <div class="resize-handle"></div>
+            </div>
+            
+            <div id="time-result1" width="1000" height="40">
+                
+            </div>
+            <div class="horizontal-controls">
+                <!-- Botões existentes -->
+                <button id="rewind-btn">
+                    <span class="icon">⏪⏪</span>
+                </button>
+                <button id="slow-rewind-btn">
+                    <span class="icon">⏪</span> <!-- Ícone para o avanço lento -->
+                </button>
+                <button id="play-btn">
+                    <span class="icon">⏯️</span>
+                </button>
+                <button id="slow-forward-btn">
+                    <span class="icon">⏩</span> <!-- Ícone para o avanço lento -->
+                </button>
+                <button id="forward-btn">
+                    <span class="icon">⏩⏩</span>
+                </button>
+                <button id="speed-btn">
+                    <span class="icon">⚡</span> 1x
+                </button>
+                <button id="track-button">Iniciar Track</button>
+                <button id="stop-button">Parar Track</button>
+                <label>
+                    <input type="checkbox" id="selectAllVideo" checked/>
+                    All Video
+                </label>
+
+            </div>
+
+            <div class="slider-container">
+                <input type="range" id="video-slider" class="slider" min="0" max="100" value="0">
+                <div class="time-display" id="current-time">00:00</div> / <div class="time-display" id="total-time">00:00</div>
+            </div>
+            <canvas id="canvas" style="display: none;"></canvas>
+            <div class="canvas-pair">
+            <canvas id="time-result" width="100" height="20"></canvas>
+            <canvas id="crop-result" width="100" height="200"></canvas>
+        </div>
+            <div class="carousel-container" id="carousel"></div>
+        </div>
+    </div>
+
+    <div>
+        
+    </div>
+    <div id="tracking-results"></div>
+    <div id="tracking-container"></div>
+    <div id="status">Status: <span id="trackingStatus">Parado</span></div>
+    
+    <div id="tracking-status"></div>
+
+    <script src="{{ url_for('static', filename='js/video.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/square.js') }}"></script>
+
+    <script>
+            const stopButton = document.getElementById('stop-button');
+
+        let trackingInProgress = false;
+
+        
+        const ctx = cropCanvas.getContext('2d');
+        let currentTime = 0;
+
+        // Função para cortar a área selecionada e salvar a imagem como template.jpg
+        function cropAndSaveImage(videoElement, draggableSquare, cropCanvas, ctx) {
+            return new Promise((resolve, reject) => {
+                const squareRect = draggableSquare.getBoundingClientRect();
+                const videoRect = videoElement.getBoundingClientRect();
+                const scaleX = videoRect.width / videoElement.videoWidth;
+                const scaleY = videoRect.height / videoElement.videoHeight;
+                const x = (squareRect.left - videoRect.left) / scaleX;
+                const y = (squareRect.top - videoRect.top) / scaleY;
+                const width = squareRect.width / scaleX;
+                const height = squareRect.height / scaleY;
+                console.log(x,';',y,';',width,';',height);
+                // Definindo o tamanho do canvas para o corte
+                cropCanvas.width = width;
+                cropCanvas.height = height;
+
+                // Desenhando a área cortada no canvas
+                ctx.drawImage(videoElement, x, y, width, height, 0, 0, width, height);
+                cropCanvas.style.display = 'block';
+
+                // Salvando a imagem como template.jpg
+                const boundingBoxData = `${x},${y},${width},${height}`;
+                
+                cropCanvas.toBlob((blob) => {
+                    const formData = new FormData();
+                    formData.append('file', blob, 'template.jpg');
+                    formData.append('bounding_box', boundingBoxData);
+
+                    fetch('/save-image', {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            resolve(); // Imagem salva com sucesso
+                        } else {
+                            reject('Erro ao salvar a imagem.');
+                        }
+                    })
+                    .catch(err => reject(err));
+                }, 'image/jpeg');
+            });
+        }
+
+        let trackingInterval;  // Variável para armazenar o ID do intervalo
+
+        // Função para atualizar o status
+        function updateStatus(newStatus) {
+            if(newStatus=="finish"){
+                
+                
+                stopButton.style.display = 'none'; // Esconde o botão de rastreamento
+                trackButton.style.display = 'inline'; // Exibe o botão de parar rastreamento
+            }
+            else if(newStatus=="not detected"){
+                
+                
+                stopButton.style.display = 'none'; // Esconde o botão de rastreamento
+                trackButton.style.display = 'inline'; // Exibe o botão de parar rastreamento
+            }
+            document.getElementById("trackingStatus").innerText = newStatus;
+        }
+
+        // Função para buscar status do servidor
+        async function fetchTrackingStatus() {
+            try {
+                const response = await fetch('/status_endpoint'); // Substitua pelo endpoint correto
+                const data = await response.json();
+                updateStatus(data.message);
+            } catch (error) {
+                updateStatus("Erro ao obter status");
+            }
+        }
+
+
+        function startTracking() {
+    const videoElement = document.querySelector('video'); // Supondo que o elemento de vídeo esteja presente
+    const draggableSquare = document.getElementById('draggable-square'); // O quadrado que será arrastado para selecionar a área
+    const cropCanvas = document.createElement('canvas'); // Criar o canvas para o corte
+    const ctx = cropCanvas.getContext('2d'); // Contexto do canvas
+    const currentTime = videoElement.currentTime;
+    const selectAllVideo = document.getElementById('selectAllVideo').checked; // Verifica se o checkbox está marcado
+    // Chama a função cropAndSaveImage e só começa o rastreamento após a imagem ser salva com sucesso
+    cropAndSaveImage(videoElement, draggableSquare, cropCanvas, ctx)
+        .then(() => {            
+            // Inicia o rastreamento apenas após a imagem ter sido salva
+            updateStatus("Iniciando...");
+              //  trackingInterval = setInterval(fetchTrackingStatus, 2000);
+
+            trackingActive = true;
+            videoFeed.style.display = 'block';
+            videoFeed.src = `/video_feed?timestamp=${currentTime}&select_all=${selectAllVideo}`;  // Correctly interpolate currentTime into the URL
+            trackButton.style.display = 'none'; // Esconde o botão de rastreamento
+            stopButton.style.display = 'inline'; // Exibe o botão de parar rastreamento
+        })
+        .catch((err) => {
+            alert('Erro ao cortar ou salvar a imagem. Tente novamente.');
+            console.error('Erro ao cortar ou salvar a imagem:', err);
+        });
+
+
+        
+}
+
+
+  // Function to stop tracking
+function stopTracking() {
+    trackingActive = false;
+    videoFeed.style.display = 'none'; // Hide video feed
+    stopButton.style.display = 'none'; // Hide stop button
+    trackButton.style.display = 'inline'; // Show start button
+
+    // You may want to call a backend endpoint to stop tracking, if necessary
+    fetch('/stop_tracking') // Assuming an endpoint exists to stop the tracking process on the backend
+        .then(response => response.json())
+        .then(data => {
+            console.log('Tracking stopped:', data);
+
+            if (trackingInterval) {
+                clearInterval(trackingInterval);
+                trackingInterval = null;  // Reseta a variável
+                updateStatus("Parado");
+            }
+        })
+        .catch((err) => {
+            console.error('Error stopping tracking:', err);
+        });
+}
+
+trackButton.addEventListener('click', startTracking);
+stopButton.addEventListener('click', stopTracking);
+
+        
+    </script>
+</body>
+</html>

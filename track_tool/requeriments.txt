@@ -1,0 +1,5 @@
+ultralytics
+flask
+ffmpegcv
+opencv-contrib-python==4.10.0.84
+
